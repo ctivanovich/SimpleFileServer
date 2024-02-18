@@ -8,6 +8,7 @@ UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask("flask_app")
+
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -40,7 +41,9 @@ def upload_file(filename):
 
 @app.route('/delete=<filename>', methods=['DELETE'])
 def delete_file(filename):
-    if allowed_file(filename) and os.path.isfile(filename):
+    allowed = allowed_file(filename)
+    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if allowed_file(filename) and os.path.isfile(path):
         os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return "File deleted"
     else:
@@ -57,10 +60,7 @@ app.add_url_rule(
     "/delete", endpoint="delete_file", build_only=True
 )
 
-# if __name__ == '__main__':
-#     app.secret_key = 'super secret key'
-#     app.config['SESSION_TYPE'] = 'filesystem'
-#     app.debug = True
-#     session.init_app(app)
-#     # app.run()
-#     session.run()
+if __name__ == '__main__':
+    session = Session()
+    session.init_app(app)
+    app.run()
