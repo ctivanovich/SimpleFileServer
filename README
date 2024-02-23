@@ -6,6 +6,7 @@
 | |____Dockerfile
 | |____app.py
 |____tests
+|______tests.py
 |____uploads
 |____cli
 | |____config
