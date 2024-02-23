@@ -1,7 +1,13 @@
-FROM python:3.9.18-slim
+FROM python:3.10
 
-COPY ./app /home/app
+VOLUME [ "/data/uploads" ]
+
 WORKDIR /home/app
-RUN pip install -r home/file_server/requirements.txt
+COPY . /home/app
 
-RUN gunicorn app.py
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+EXPOSE 8000 5000
+
+CMD ["gunicorn","--config", "config/gunicorn_config.py", "app:app"]

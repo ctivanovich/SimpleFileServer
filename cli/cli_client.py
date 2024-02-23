@@ -4,78 +4,70 @@ import requests
 import textwrap
 import urllib.parse
 
+from io import BytesIO
 from pprint import pprint
+from requests.models import Response
 
 from config import sfs_config
 
 
-# class StoreTrueWithOptionStringAction(argparse.Action):
-
-#     def __init__(self,
-#                  option_strings,
-#                  dest,
-#                  default=None,
-#                  required=False,
-#                  help=None,
-#                  metavar=None):
-#         super().__init__(
-#         )
-    
-#     def __call__(self, parser, namespace, values, option_string=None):
-#         setattr(namespace, self.dest, self.const)
-#         if option_string is not None:
-#             setattr(namespace, f'{self.dest}_option_string', option_string)
-
-
-class SFSSession():
+class SFSSession:
     def __init__(self):
         self.url = f"http://{sfs_config.SERVER}:{sfs_config.PORT}/"
         self.session = requests.Session()
-        super().__init__()
+        self.resp = Response()
 
     def request_file_list(self):
         try:
-            return self.session.request(url=self.url, method = "GET")
-        
+            return self.session.request(url=self.url, method="GET")
+
         except:
-            print("FAILED REQUEST: Failure to obtain file list from server.")
-    
+            self.resp.raw = BytesIO(b"FAILED REQUEST: Failure to obtain file list from server.")
+            self.resp.status_code = 404
+            return self.resp
+
     def request_upload_file(self, file):
         file_path = pathlib.Path(file)
         file = file_path.stem + file_path.suffix
-        
+
         try:
             return self.session.request(
                 url=self.url + urllib.parse.urlencode({"upload": file}),
                 files={"file": open(file_path, "rb")},
-                method="POST"
+                method="POST",
             )
         except FileNotFoundError:
-            print("File not found. Please ensure file path is full and accurate.")
+            self.resp.raw = BytesIO(b"File not found. Please ensure file path is full and accurate.")
+            self.resp.status_code = 404
+            return self.resp
 
     def request_delete_file(self, file):
         try:
             return self.session.request(
-                url=self.url + urllib.parse.urlencode({"delete": file}),
-                method="DELETE"
+                url=self.url + urllib.parse.urlencode({"delete": file}), method="DELETE"
             )
-            
+
         except FileNotFoundError:
-            print(
-                "File not found. Make sure to provide the file name exactly \
-                as listed after executing the list command."
-            )
+            self.resp.raw = BytesIO(b"File not found. Make sure to provide the file name exactly \
+            as listed after executing the list command.")
+            self.resp.status_code = 404
+            return self.resp
 
 
-def main(sfs_session: SFSSession, args: argparse.Namespace)->requests.Response:
-    if args.upload:
-        resp = sfs_session.request_upload_file(args.upload)
-    elif args.delete:
-        resp = sfs_session.request_delete_file(args.delete)
-    else:
-        resp = sfs_session.request_file_list()
+def main(sfs_session: SFSSession, args: argparse.Namespace) -> requests.Response:
+    try:
+        if args.upload:
+            resp = sfs_session.request_upload_file(args.upload)
+        elif args.delete:
+            resp = sfs_session.request_delete_file(args.delete)
+        else:
+            resp = sfs_session.request_file_list()
 
-    return resp
+        return resp
+
+    except Exception as e:
+        print(f"Unhandled Exception, please contact maintainers: {e}")
+        return sfs_session.resp
 
 
 parser = argparse.ArgumentParser(
@@ -83,21 +75,19 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=textwrap.dedent(
         """\
-    A friendly client for interacting with your remote file server.\n
-    Requires installation of Python and dependencies in requirements.txt.
-    Usage:
-        python cli_client.py [COMMAND] [FILE]
-    """
+        A friendly client for interacting with your remote file server.\n
+        Requires installation of Python and dependencies in requirements.txt.
+        Usage:
+            python cli_client.py [COMMAND] [FILE]
+        """
     ),
 )
 
 parser.add_argument(
     "--list",
     "-l",
-    action="store_true", 
+    action="store_true",
     dest="list",
-    # action=StoreTrueWithOptionStringAction,
-    # const="list",
     help="Retrieve newline delimited list of existing files.",
 )
 parser.add_argument(
@@ -118,6 +108,5 @@ parser.add_argument(
 if __name__ == "__main__":
     args = parser.parse_args()
     sfs_session = SFSSession()
-    print(args)
     resp = main(sfs_session, args)
     print(resp.text)

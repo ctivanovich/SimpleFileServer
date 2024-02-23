@@ -1,48 +1,60 @@
-Challenge Statement
-This challenge is about creating a simple file storage server with a command line interface
-with the files on the server.
-Details
-You are tasked with simple file storage server with a command line interface, this server
-should support the following functions :
-1
+# Simple File Server
+<pre>
+|____app
+| |____config
+| | |____gunicorn_config.py
+| |____Dockerfile
+| |____app.py
+|____tests
+|____uploads
+|____cli
+| |____config
+| | |____sfs_config.py
+| |____cli_client.py
+|____README
+|____setup.py
+|____.gitignore
+</pre>
 
-1. Upload a file
-ex. POST /files/<name>, Content-Type: multipart/form-data
-2. Delete a file
-ex. DELETE /files/<name>
-3. List uploaded files (if a file is uploaded then deleted it should not be listed)
-ex. GET /files may return a list of files: [file1.txt, file2.txt, ..]
-The server may be written in a language and framework of your choosing. If you wish to
-use a different interface (or different non HTTP/REST protocol), you may do so as long as it
-supports the three functions listed above (the endpoint names and types are just
-suggestions to get started).
-After you have written the server, please implement a command line interface (CLI) to
-interact with the server. The CLI should support the same three functions as the server (ex.
-fs-store upload-file <file>, fs-store delete-file <file>, fs-store list-files). We suggest using
-existing CLI frameworks to handle the needed boilerplate.
-When working on this challenge, be sure to implement your solution as if you were in a
-production setting (think about how real production code is set up managed). Specifically,
-some things to think about include:
-- Proving correctness of the code (and ensuring future code changes don’t break CLI
-/ Server interaction)
-- CLI design, and ease of use
-- Project tooling and reproducible builds (what tooling or checks would you need in
-place in an OSS project, for example)
-- Installation (how would you distribute the software to a user)
+### File Server
 
-1 Notably, this server does not include the ability to download files or create directories, neither of which is
-required for this challenge.
+The file server can be built and run exposing port 8000 using the provided Dockerfile:
+```
+cd app && docker build -t server .
+docker run -p 8000:8000 server
+````
 
-What to return back to us
-1. The project folder and all its contents
-2. Please provide a complete README file that includes following contents:
-a. What is your idea or Ingenuity in design
-b. Instructions on how to build and run (distribute) your code
-c. framework and tool / kit information if you use
-d. Operating system and environment setting information if necessary
-3. Make sure your code is well covered by test code to illustrate its robustness.
-4. Please zip or tar everything in a directory named yourfirst.lastname/ and return
-via email
-5. In your email response please let us know roughly how many hours you spent on
-this exercise (we will not grade you this on this answer -- it is helpful for us to
-normalize the difficulty of challenges)
+If running the server script directly, install the dependencies in requirements.txt, and run with gunicorn:
+
+`gunicorn --config ./app/config/gunicorn_config.py ./app/app.py`
+
+The server exposes the following endpoints:
+
+__/list__ -> print all uploaded files
+
+
+__/upload=FILE__ -> this will upload files up to 16mb in size; the maximum size can be increased, and the providedå server should be able to handle larger files.
+
+
+__/delete=FILE__ -> this will delete the remotely stored <file>
+
+
+### CLI client
+
+The CLI client is a python app, and its dependencies can be installed running the provided setup.py file:
+python setup.py
+
+The configuration in cli/config/sfs_config.py can be modified with the correct server address and port if needed.
+
+Supported usage is as follows:
+```
+python cli_client.py [COMMAND] [FILE]
+
+options:
+  -h, --help            show this help message and exit
+  --list, -l            Retrieve newline delimited list of existing files.
+  --upload UPLOAD, -u UPLOAD
+                        Upload file if path/to/file/filename exists locally.
+  --delete DELETE, -d DELETE
+                        Delete existing file if /path/to/file/filename exists on server.
+```
