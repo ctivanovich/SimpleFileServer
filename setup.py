@@ -11,13 +11,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="ct.ivanovich@gmail.com",
-    install_requires=[
-        "pytest"
-,        "flask",
-        "flask_session",
-        "requests",
-        "gunicorn"
-    ],
+    install_requires=["pytest", "flask", "flask_session", "requests", "gunicorn"],
     python_requires=">=3.9",
     classifiers=[
         "Development Status :: 4 - Beta",

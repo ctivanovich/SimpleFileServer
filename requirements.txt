@@ -1,0 +1,6 @@
+## for github workflows
+"pytest"
+"flask"
+"flask_session"
+"requests"
+"gunicorn"
