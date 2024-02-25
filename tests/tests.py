@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from cli_client import SFSSession, main
+from cli.cli_client import SFSSession, main
 
 @pytest.fixture
 def mock_session():
