@@ -1,7 +1,11 @@
 import os
 import shutil
+
+from io import BytesIO
 from flask import Flask, request, redirect, url_for
+from flask.typing import ResponseReturnValue
 from flask_session import Session
+from requests.models import Response
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = "./uploads"
@@ -26,9 +30,10 @@ def get_file_list() -> list:
 
 @app.route("/upload=<filename>", methods=["POST"])
 def upload_file(filename):
-    # check if the post request has the file part
+    # check if the post request has the file
     if "file" not in request.files:
         return "No file provided"
+    
     file = request.files["file"]
 
     if file.filename == "":
@@ -38,6 +43,7 @@ def upload_file(filename):
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
         return "File uploaded successfully"
+    
     return "File failed to upload. Is it larger than the maximum allowed 16 MB?"
 
 
@@ -45,16 +51,21 @@ def upload_file(filename):
 def delete_file(filename):
     allowed = allowed_file(filename)
     path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    resp = Response()
     if allowed_file(filename) and os.path.isfile(path):
         os.remove(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-        return "File deleted"
+        resp.text = "File deleted"
+        return resp
     else:
-        return "File not found, check path and name and try again. Removing entire directories not supported."
+        resp.raw = BytesIO(b"File not found, check path and name and try again. \
+            Removing entire directories not supported.")
+        resp.status_code = 404
+        return resp
 
 
-app.add_url_rule("/", endpoint="get_file_list", build_only=True)
-app.add_url_rule("/upload", endpoint="upload_file", build_only=True)
-app.add_url_rule("/delete", endpoint="delete_file", build_only=True)
+# app.add_url_rule("/", endpoint="get_file_list", build_only=True)
+# app.add_url_rule("/upload", endpoint="upload_file", build_only=True)
+# app.add_url_rule("/delete", endpoint="delete_file", build_only=True)
 
 if __name__ == "__main__":
     session = Session()

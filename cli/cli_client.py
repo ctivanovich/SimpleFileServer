@@ -5,28 +5,28 @@ import textwrap
 import urllib.parse
 
 from io import BytesIO
-from pprint import pprint
+from typing import Union, Tuple
 from requests.models import Response
 
-from config import sfs_config
+from config.cli_config import SERVER, PORT
 
 
 class SFSSession:
     def __init__(self):
-        self.url = f"http://{sfs_config.SERVER}:{sfs_config.PORT}/"
+        self.url = f"http://{SERVER}:{PORT}/"
         self.session = requests.Session()
-        self.resp = Response()
+        self.client_side_generic_response = Response()
 
-    def request_file_list(self):
+    def request_file_list(self) -> str | Response:
         try:
             return self.session.request(url=self.url, method="GET")
 
         except:
-            self.resp.raw = BytesIO(b"FAILED REQUEST: Failure to obtain file list from server.")
-            self.resp.status_code = 404
-            return self.resp
+            self.client_side_generic_response.raw = BytesIO(b"FAILED REQUEST: Failure to obtain file list from server.")
+            self.client_side_generic_response.status_code = 404
+            return self.client_side_generic_response
 
-    def request_upload_file(self, file):
+    def request_upload_file(self, file) -> str | Response:
         file_path = pathlib.Path(file)
         file = file_path.stem + file_path.suffix
 
@@ -37,24 +37,24 @@ class SFSSession:
                 method="POST",
             )
         except FileNotFoundError:
-            self.resp.raw = BytesIO(b"File not found. Please ensure file path is full and accurate.")
-            self.resp.status_code = 404
-            return self.resp
+            self.client_side_generic_response.raw = BytesIO(b"File not found. Please ensure file path is full and accurate.")
+            self.client_side_generic_response.status_code = 404
+            return self.client_side_generic_response
 
-    def request_delete_file(self, file):
+    def request_delete_file(self, file) -> str | Response:
         try:
             return self.session.request(
                 url=self.url + urllib.parse.urlencode({"delete": file}), method="DELETE"
             )
 
-        except FileNotFoundError:
-            self.resp.raw = BytesIO(b"File not found. Make sure to provide the file name exactly \
+        except:
+            self.client_side_generic_response.raw = BytesIO(b"Server side failure. Make sure to provide the file name exactly \
             as listed after executing the list command.")
-            self.resp.status_code = 404
-            return self.resp
+            self.client_side_generic_response.status_code = 404
+            return self.client_side_generic_response
 
 
-def main(sfs_session: SFSSession, args: argparse.Namespace) -> requests.Response:
+def main(sfs_session: SFSSession, args: argparse.Namespace) -> str:
     try:
         if args.upload:
             resp = sfs_session.request_upload_file(args.upload)
@@ -66,8 +66,8 @@ def main(sfs_session: SFSSession, args: argparse.Namespace) -> requests.Response
         return resp
 
     except Exception as e:
-        print(f"Unhandled Exception, please contact maintainers: {e}")
-        return sfs_session.resp
+         return f"Unhandled Exception, please contact maintainers: {e}"
+        
 
 
 parser = argparse.ArgumentParser(

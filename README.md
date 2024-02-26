@@ -49,7 +49,7 @@ The configuration in cli/config/sfs_config.py can be modified with the correct s
 
 Supported usage is as follows:
 ```
-python cli_client.py [COMMAND] [FILE]
+python -m cli.cli_client [COMMAND] [FILE]
 
 options:
   -h, --help            show this help message and exit
@@ -59,3 +59,10 @@ options:
   --delete DELETE, -d DELETE
                         Delete existing file if /path/to/file/filename exists on server.
 ```
+
+### Testing
+With a gunicorn or flask development server running app.py, execute cli client tests using pytest (pip install pytest) from within the `cli` client directory.
+
+`cd cli && python -m pytest ../tests/tests.py`
+
+Use of python -m pytest is necessary to force pytest to have the root directory imported as a module, which correctly resolves the import hierarchy (see: https://stackoverflow.com/questions/10253826/path-issue-with-pytest-importerror-no-module-named).
