@@ -15,46 +15,26 @@ class SFSSession:
     def __init__(self):
         self.url = f"http://{SERVER}:{PORT}/"
         self.session = requests.Session()
-        self.client_side_generic_response = Response()
 
-    def request_file_list(self) -> str | Response:
-        try:
-            return self.session.request(url=self.url, method="GET")
+    def request_file_list(self) -> Response:
+        return self.session.request(url=self.url, method="GET")
 
-        except:
-            self.client_side_generic_response.raw = BytesIO(b"FAILED REQUEST: Failure to obtain file list from server.")
-            self.client_side_generic_response.status_code = 404
-            return self.client_side_generic_response
-
-    def request_upload_file(self, file) -> str | Response:
+    def request_upload_file(self, file) -> Response:
         file_path = pathlib.Path(file)
         file = file_path.stem + file_path.suffix
+        return self.session.request(
+            url=self.url + urllib.parse.urlencode({"upload": file}),
+            files={"file": open(file_path, "rb")},
+            method="POST"
+        )
 
-        try:
-            return self.session.request(
-                url=self.url + urllib.parse.urlencode({"upload": file}),
-                files={"file": open(file_path, "rb")},
-                method="POST",
-            )
-        except FileNotFoundError:
-            self.client_side_generic_response.raw = BytesIO(b"File not found. Please ensure file path is full and accurate.")
-            self.client_side_generic_response.status_code = 404
-            return self.client_side_generic_response
-
-    def request_delete_file(self, file) -> str | Response:
-        try:
-            return self.session.request(
-                url=self.url + urllib.parse.urlencode({"delete": file}), method="DELETE"
-            )
-
-        except:
-            self.client_side_generic_response.raw = BytesIO(b"Server side failure. Make sure to provide the file name exactly \
-            as listed after executing the list command.")
-            self.client_side_generic_response.status_code = 404
-            return self.client_side_generic_response
+    def request_delete_file(self, file) -> Response:
+        return self.session.request(
+            url=self.url + urllib.parse.urlencode({"delete": file}), method="DELETE"
+        )            
 
 
-def main(sfs_session: SFSSession, args: argparse.Namespace) -> str:
+def main(sfs_session: SFSSession, args: argparse.Namespace) -> Response:
     try:
         if args.upload:
             resp = sfs_session.request_upload_file(args.upload)

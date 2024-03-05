@@ -8,6 +8,6 @@ COPY . /home/app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-EXPOSE 8000 5000
+EXPOSE 5000
 
-CMD ["gunicorn","--config", "config/gunicorn_config.py", "app:app"]
+CMD ["gunicorn","--config", "config/server_config.py", "app:app"]
