@@ -5,13 +5,13 @@
 | | |____server_config.py
 | |____Dockerfile
 | |____app.py
-|____tests
-|______tests.py
 |____uploads
 |____cli
 | |____config
 | | |____sfs_config.py
 | |____cli_client.py
+| |____tests
+|___|___test.py
 |____README
 |____requirements.txt
 |____.gitignore
