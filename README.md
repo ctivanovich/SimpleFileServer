@@ -64,19 +64,3 @@ With a gunicorn or flask development server running app.py on port 8000, execute
 `python -m pytest tests/tests.py`
 
 Use of python -m pytest is necessary to force pytest to have the root directory imported as a module, which correctly resolves the import hierarchy (see: https://stackoverflow.com/questions/10253826/path-issue-with-pytest-importerror-no-module-named).
-
-
-### Response to Woven Planet questions
-1. Please provide a complete README file that includes following contents:
-  a. What is your idea or Ingenuity in design
-    I think the ingenuity here is in making this portable and distributable to both users and providers of this as an exposed endpoint. It's not an enterprise quality application and clearly a POC or toy project, but the pieces and tooling are there for someone (me, for instance, but also any other curious engineer) to further build it out, add additional and critical functionality like user storage and authentication, deployment to the public cloud with e.g. S3 for storage and AWS Lambda as the on-demand file server allowing for concurrent requests and indivdualized storage spaces in the cloud, etc. A major issue to note is that the server side secret is hard-coded in the file, and in production, I would certainly externalize that and store it encrypted and securely with an additional process, or in a public service like AWS SMS Parameter Store, and retrieve and renew it regulary as needed.
-  b. Instructions on how to build and run (distribute) your code.
-    Included in this README file above.
-  c. framework and tool / kit information if you use.
-    I make use of Flask and gunicorn as my API framework and server, respectively. I built the CLI argument parsing using the standard argparse library in Python. 
-  d. Operating system and environment setting information if necessary.
-    Nothing in particular is necessary, apart from installation of Python >3.8 as code is platform agnostic, with environment variables provided and read in via Python rather than via e.g. bash or DOS.
-3. Make sure your code is well covered by test code to illustrate its robustness.
-  Tests are provided, but in all honestly, beginning my career as a data scientist (and then on to data engineering, TDD, and automated SIT as I would like. This portion of the assignment was the most unfamiliar to me, but I made use of ChatGPT on this portion alone to gain at least a basic template from which to learn. 
-4. Please zip or tar everything in a directory named yourfirst.lastname/ and return
-via email
